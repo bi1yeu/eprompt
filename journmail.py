@@ -7,7 +7,7 @@ import uuid
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from imap_tools import MailBox, AND, H
+from imap_tools import MailBox, AND, OR, H
 
 
 MESSAGE_ID_FILE = f".message_ids"
@@ -74,16 +74,21 @@ def read_mail():
         print("no messages found")
         return False
 
-    # TODO prevent double processing? delete mail from server?
+    message = messages[0]
 
     file_date = (
-        f"{messages[0].date.year}-{messages[0].date.month}-{messages[0].date.day}.txt"
+        f"{message.date.year}-{message.date.month}-{message.date.day}.txt"
     )
     with open(f"{os.environ['JOURNMAIL_JOURNAL_DIR']}/{file_date}", "a") as f:
-        for message in messages:
-            formatted_message = format_entry(message)
-            print(formatted_message)
-            f.write(formatted_message)
+        formatted_message = format_entry(message)
+        print(formatted_message)
+        f.write(formatted_message)
+
+    # delete original mail and response
+    response_message_id = message.headers['message-id'][0]
+    messages_to_delete = mb.fetch(OR(header=[H("Message-ID", message_id),
+                                             H("Message-ID", response_message_id)]))
+    mb.delete([m.uid for m in messages_to_delete])
 
     return True
 
