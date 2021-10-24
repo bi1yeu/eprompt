@@ -140,9 +140,3 @@ if __name__ == "__main__":
             print("Wrote latest journal entry.")
     else:
         print_usage()
-
-    # TODO explore past entries??
-    # elif command == "last":
-    #     with open() as f:
-    #         for line in f.readline():
-    #             print(line)
