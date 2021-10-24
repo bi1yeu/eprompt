@@ -26,20 +26,20 @@ def read_latest_message_id():
 
 
 def smtp_send(message):
-    mailserver = smtplib.SMTP_SSL(
+    mailbox = smtplib.SMTP_SSL(
         os.environ["JOURNMAIL_SMTP_HOST"], os.environ["JOURNMAIL_SMTP_PORT"]
     )
-    mailserver.ehlo()
-    mailserver.login(
-        os.environ["JOURNMAIL_MAILSERVER_USER"], os.environ["JOURNMAIL_MAILSERVER_PASS"]
+    mailbox.ehlo()
+    mailbox.login(
+        os.environ["JOURNMAIL_MAILBOX_USER"], os.environ["JOURNMAIL_MAILBOX_PASS"]
     )
-    mailserver.sendmail(
+    mailbox.sendmail(
         os.environ["JOURNMAIL_MESSAGE_FROM"],
         os.environ["JOURNMAIL_MESSAGE_TO"],
         message.as_string(),
     )
 
-    mailserver.quit()
+    mailbox.quit()
 
 
 def compose_and_send_mail():
@@ -62,13 +62,15 @@ def compose_and_send_mail():
 
 # returns true if found mail
 def read_mail():
-    mb = MailBox("imap.fastmail.com", 993).login(
-        os.environ["JOURNMAIL_MAILSERVER_USER"], os.environ["JOURNMAIL_MAILSERVER_PASS"]
+    mailbox = MailBox("imap.fastmail.com", 993).login(
+        os.environ["JOURNMAIL_MAILBOX_USER"], os.environ["JOURNMAIL_MAILBOX_PASS"]
     )
+
+    mailbox.folder.set(os.environ["JOURNMAIL_MAILBOX_FOLDER"])
 
     message_id = read_latest_message_id()
 
-    messages = list(mb.fetch(AND(header=[H("In-Reply-To", message_id)])))
+    messages = list(mailbox.fetch(AND(header=[H("In-Reply-To", message_id)])))
 
     if len(messages) == 0:
         print("no messages found")
@@ -81,14 +83,14 @@ def read_mail():
     )
     with open(f"{os.environ['JOURNMAIL_JOURNAL_DIR']}/{file_date}", "a") as f:
         formatted_message = format_entry(message)
-        print(formatted_message)
+        #print(formatted_message)
         f.write(formatted_message)
 
     # delete original mail and response
     response_message_id = message.headers['message-id'][0]
-    messages_to_delete = mb.fetch(OR(header=[H("Message-ID", message_id),
+    messages_to_delete = mailbox.fetch(OR(header=[H("Message-ID", message_id),
                                              H("Message-ID", response_message_id)]))
-    mb.delete([m.uid for m in messages_to_delete])
+    mailbox.delete([m.uid for m in messages_to_delete])
 
     return True
 
