@@ -108,7 +108,7 @@ def format_entry(msg):
 
     keep_lines = []
     for line in lines:
-        if f"{os.environ['JOURNMAIL_MESSAGE_TO']} wrote:" in line:
+        if f"{os.environ['JOURNMAIL_MESSAGE_FROM']} wrote:" in line:
             break
         keep_lines.append(line)
 
