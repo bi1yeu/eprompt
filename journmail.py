@@ -7,12 +7,15 @@ import uuid
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import make_msgid
 from imap_tools import MailBox, AND, OR, H
 
 
 MESSAGE_ID_FILE = f".message_ids"
 
 
+# could maintain only a single message_id, but presently retains them all for
+# bookkeeping
 def write_message_id(message_id):
     with open(MESSAGE_ID_FILE, "a") as f:
         f.write("\n" + message_id)
@@ -49,7 +52,7 @@ def compose_and_send_mail():
     message["To"] = os.environ["JOURNMAIL_MESSAGE_TO"]
     message["Subject"] = "Daily Journal"
 
-    message_id = f"<{uuid.uuid1()}@fastmail.com>"
+    message_id = make_msgid(domain=os.environ["JOURNMAIL_MESSAGE_FROM_DOMAIN"])
     message["Message-ID"] = message_id
 
     write_message_id(message_id)
@@ -62,9 +65,9 @@ def compose_and_send_mail():
 
 # returns true if found mail
 def read_mail():
-    mailbox = MailBox("imap.fastmail.com", 993).login(
-        os.environ["JOURNMAIL_MAILBOX_USER"], os.environ["JOURNMAIL_MAILBOX_PASS"]
-    )
+    mailbox = MailBox(
+        os.environ["JOURNMAIL_IMAP_HOST"], os.environ["JOURNMAIL_IMAP_PORT"]
+    ).login(os.environ["JOURNMAIL_MAILBOX_USER"], os.environ["JOURNMAIL_MAILBOX_PASS"])
 
     mailbox.folder.set(os.environ["JOURNMAIL_MAILBOX_FOLDER"])
 
