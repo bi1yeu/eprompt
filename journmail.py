@@ -78,18 +78,17 @@ def read_mail():
 
     message = messages[0]
 
-    file_date = (
-        f"{message.date.year}-{message.date.month}-{message.date.day}.txt"
-    )
+    file_date = f"{message.date.year}-{message.date.month}-{message.date.day}.txt"
     with open(f"{os.environ['JOURNMAIL_JOURNAL_DIR']}/{file_date}", "a") as f:
         formatted_message = format_entry(message)
-        #print(formatted_message)
+        # print(formatted_message)
         f.write(formatted_message)
 
     # delete original mail and response
-    response_message_id = message.headers['message-id'][0]
-    messages_to_delete = mailbox.fetch(OR(header=[H("Message-ID", message_id),
-                                             H("Message-ID", response_message_id)]))
+    response_message_id = message.headers["message-id"][0]
+    messages_to_delete = mailbox.fetch(
+        OR(header=[H("Message-ID", message_id), H("Message-ID", response_message_id)])
+    )
     mailbox.delete([m.uid for m in messages_to_delete])
 
     return True
