@@ -63,8 +63,25 @@ def compose_and_send_mail():
     smtp_send(message)
 
 
-# returns true if found mail
-def read_mail():
+def delete_mail(mailbox, message_id, response_message):
+    """Delete the original solicitation message and the journal entry response."""
+    mailbox.folder.set(os.environ["JOURNMAIL_MAILBOX_FOLDER"])
+
+    # delete original mail and response
+    response_message_id = response_message.headers["message-id"][0]
+    messages_to_delete = mailbox.fetch(
+        OR(header=[H("Message-ID", message_id), H("Message-ID", response_message_id)])
+    )
+    mailbox.delete([m.uid for m in messages_to_delete])
+
+    # also delete mail from sent folder
+    mailbox.folder.set(os.environ["JOURNMAIL_MAILBOX_SENT_FOLDER"])
+    messages_to_delete = mailbox.fetch(AND(header=[H("In-Reply-To", message_id)]))
+    mailbox.delete([m.uid for m in messages_to_delete])
+
+
+def read_and_delete_mail():
+    """Read the response to the solicitation email, then delete journmail messages."""
     mailbox = MailBox(
         os.environ["JOURNMAIL_IMAP_HOST"], os.environ["JOURNMAIL_IMAP_PORT"]
     ).login(os.environ["JOURNMAIL_MAILBOX_USER"], os.environ["JOURNMAIL_MAILBOX_PASS"])
@@ -73,26 +90,21 @@ def read_mail():
 
     message_id = read_latest_message_id()
 
-    messages = list(mailbox.fetch(AND(header=[H("In-Reply-To", message_id)])))
+    response_messages = list(mailbox.fetch(AND(header=[H("In-Reply-To", message_id)])))
 
-    if len(messages) == 0:
-        print("no messages found")
+    if len(response_messages) == 0:
+        print("no response messages found")
         return False
 
-    message = messages[0]
+    response_message = response_messages[0]
 
-    file_date = f"{message.date.year}-{message.date.month}-{message.date.day}.txt"
+    file_date = f"{response_message.date.year}-{response_message.date.month}-{response_message.date.day}.txt"
     with open(f"{os.environ['JOURNMAIL_JOURNAL_DIR']}/{file_date}", "a") as f:
-        formatted_message = format_entry(message)
-        # print(formatted_message)
-        f.write(formatted_message)
+        formatted_response_message = format_entry(response_message)
+        # print(formatted_response_message)
+        f.write(formatted_response_message)
 
-    # delete original mail and response
-    response_message_id = message.headers["message-id"][0]
-    messages_to_delete = mailbox.fetch(
-        OR(header=[H("Message-ID", message_id), H("Message-ID", response_message_id)])
-    )
-    mailbox.delete([m.uid for m in messages_to_delete])
+    delete_mail(mailbox, message_id, response_message)
 
     return True
 
@@ -139,7 +151,7 @@ if __name__ == "__main__":
         compose_and_send_mail()
         print("Sent journal reminder.")
     elif command == "read":
-        if read_mail():
+        if read_and_delete_mail():
             print("Wrote latest journal entry.")
     else:
         print_usage()
