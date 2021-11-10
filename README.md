@@ -6,7 +6,7 @@ The `send` function will send a journaling reminder to your email address.
 
 The `read` function will look for the latest response to a journaling reminder, and will save that response as a journal entry. It also deletes the journmail thread from your mailbox.
 
-It works with IMAP and SMTP and can be configured to run on a cron schedule for recurring reminders.
+It works with IMAP and SMTP and can be configured to run on a cron schedule for recurring reminders. Presently only tested with [Fastmail](https://www.fastmail.com).
 
 ## Installation
 
