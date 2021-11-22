@@ -126,11 +126,7 @@ def format_entry(msg):
             break
         keep_lines.append(line)
 
-    if keep_lines[-1] == "":
-        keep_lines = keep_lines[:-1]
-
     keep_lines = [HORIZONTAL_LINE_BOLD, msg.date_str, HORIZONTAL_LINE, ""] + keep_lines
-    keep_lines += [""]
 
     return "\n".join(keep_lines) + "\n"
 
