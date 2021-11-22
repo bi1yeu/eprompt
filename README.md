@@ -1,14 +1,21 @@
-Journmail is a small system for journaling via email.
 
-It has two functions: `send` and `read`.
+Eprompt
+=======
 
-The `send` function will send a journaling reminder to your email address.
+Eprompt is a small system for writing via email.
 
-The `read` function will look for the latest response to a journaling reminder, and will save that response as a journal entry. It also deletes the journmail thread from your mailbox.
+Eprompt sends an email prompting the user to write. The response is persisted to a text file, and the emails are deleted from the server.
 
-It works with IMAP and SMTP and can be configured to run on a cron schedule for recurring reminders. Presently only tested with [Fastmail](https://www.fastmail.com).
+Some example uses:
 
-## Installation
+- daily journal
+- weekly chapter for a book
+- monthly work retrospective
+
+Inspired by [this Hacker News comment](https://news.ycombinator.com/item?id=28896170).
+
+Installation
+------------
 
 ``` sh
 pip install -r requirements.txt # install dependencies
@@ -16,10 +23,26 @@ cp .env{.example,}              # create .env file
 vim .env                        # edit .env to export mailbox settings and other config
 ```
 
-## Usage
+Usage
+-----
+
+Eprompt has two functions: `send` and `read`.
+
+The `send` function will send a writing reminder to the designated email address.
+
+The `read` function will look for the latest response to a writing reminder, and will save that response in a text file. It also deletes the eprompt thread from your mailbox.
+
+It works with IMAP and SMTP and can be configured to run on a cron schedule for recurring reminders. Presently only tested with [Fastmail](https://www.fastmail.com).
 
 ```sh
 source .env
-python journmail.py send # send reminder email to solicit journal entry
-python journamil.py read # read latest response and persist to journal file
+python eprompt.py send # send reminder email to solicit writing entry
+python eprompt.py read # read latest response and persist to writing file
+```
+
+Example crontab that sends a daily prompt and polls for responses:
+
+``` sh
+0 3 * * * . /path/to/emprompt/.env && /path/to/python /path/to/emprompt/eprompt.py send
+*/30 * * * * . /path/to/emprompt/.env && /path/to/python /path/to/emprompt/eprompt.py read
 ```
