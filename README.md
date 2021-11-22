@@ -1,6 +1,6 @@
 
-✉️ Eprompt ✉️
-===========
+Eprompt 📧
+==========
 
 Eprompt is a small system for writing via email.
 
