@@ -1,6 +1,6 @@
 
-Eprompt
-=======
+✉️ Eprompt ✉️
+===========
 
 Eprompt is a small system for writing via email.
 
@@ -32,7 +32,7 @@ The `send` function will send a writing reminder to the designated email address
 
 The `read` function will look for the latest response to a writing reminder, and will save that response in a text file. It also deletes the eprompt thread from your mailbox.
 
-It works with IMAP and SMTP and can be configured to run on a cron schedule for recurring reminders. Presently only tested with [Fastmail](https://www.fastmail.com).
+It uses IMAP and SMTP to send and read emails. It does not have any scheduling of its own, but it can be configured to run on a cron schedule for recurring reminders. Presently only tested with [Fastmail](https://www.fastmail.com).
 
 ```sh
 source .env
