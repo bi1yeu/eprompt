@@ -63,12 +63,11 @@ def compose_and_send_mail():
     smtp_send(message)
 
 
-def delete_mail(mailbox, message_id, response_message):
+def delete_mail(mailbox, message_id, response_message_id):
     """Delete the original solicitation message and the entry response."""
     mailbox.folder.set(os.environ["EPROMPT_MAILBOX_FOLDER"])
 
     # delete original mail and response
-    response_message_id = response_message.headers["message-id"][0]
     messages_to_delete = mailbox.fetch(
         OR(header=[H("Message-ID", message_id), H("Message-ID", response_message_id)])
     )
@@ -78,6 +77,18 @@ def delete_mail(mailbox, message_id, response_message):
     mailbox.folder.set(os.environ["EPROMPT_MAILBOX_SENT_FOLDER"])
     messages_to_delete = mailbox.fetch(AND(header=[H("In-Reply-To", message_id)]))
     mailbox.delete([m.uid for m in messages_to_delete])
+
+def write_message_to_file(message):
+    message_year = message.date.year
+    message_month = str(message.date.month).zfill(2)
+    message_day = str(message.date.day).zfill(2)
+
+    date_filename = f"{message_year}-{message_month}-{message_day}.txt"
+
+    with open(f"{os.environ['EPROMPT_OUTPUT_DIR']}/{date_filename}", "a") as f:
+        formatted_message = format_entry(message)
+        # print(formatted_message)
+        f.write(formatted_message)
 
 
 def read_and_delete_mail():
@@ -98,13 +109,11 @@ def read_and_delete_mail():
 
     response_message = response_messages[0]
 
-    file_date = f"{response_message.date.year}-{response_message.date.month}-{response_message.date.day}.txt"
-    with open(f"{os.environ['EPROMPT_OUTPUT_DIR']}/{file_date}", "a") as f:
-        formatted_response_message = format_entry(response_message)
-        # print(formatted_response_message)
-        f.write(formatted_response_message)
+    write_message_to_file(response_message)
 
-    delete_mail(mailbox, message_id, response_message)
+    response_message_id = response_message.headers["message-id"][0]
+
+    delete_mail(mailbox, message_id, response_message_id)
 
     return True
 
